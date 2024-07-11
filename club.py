@@ -1,57 +1,70 @@
+import csv
+from member import Member
+from address import Address
+
+
 class Club:
-    def __init__(self, club_name, club_address):
-        self.club_name = club_name
-        self.club_address = club_address
-        self.members = []        # Liste für Mitglieder
-        self.events = []   # Liste für Veranstaltungen
+    def __init__(self, name, address):
+        self.name = name
+        self.address = address
+        self.members = []
+        self.events = []
 
-    def addMember(self, new_member):
-        if new_member in self.members:
-            print("Dieses Mitglied ist bereits im Verein vorhanden.")
-        else:
-            self.members.append(new_member)
+    def addMember(self, member):
+        self.members.append(member)
 
-    def removeMember(self, old_member):
-        if old_member not in self.members:
-            print("Dieses Mitglied wurde nicht gefunden.")
-        else:
-            self.members.remove(old_member)
-            print("Mitglied entfernt")
+    def removeMember(self, member_to_remove):
+        self.members.remove(member_to_remove)
 
-    def addEvent(self, new_event):
-        if any(event.event_id == new_event.event_id for event in self.events):
-            print(f"Die Event-ID '{new_event.event_id}' ist bereits vergeben.")
-        else:
-            self.events.append(new_event)
-            print("Veranstaltung hinzugefügt.")
+    def findMember(self, member_id):
+        for member in self.members:
+            if member.member_id == member_id:
+                return member
+        return None
 
-    def removeEvent(self, old_event):
-        if old_event not in self.events:
-            print("Dieses Event wurde nicht gefunden.")
-        else:
-            self.events.remove(old_event)
-            print("Event erfolgreich entfernt.")
+    def getMembers(self):
+        return self.members
 
-    def findMember(self, search_member_id):
-        return next((m for m in self.members if m.member_id == search_member_id), None)
+    def addEvent(self, event):
+        self.events.append(event)
+
+    def removeEvent(self, event_to_remove):
+        self.events.remove(event_to_remove)
 
     def findEvent(self, event_id):
-        event_id = str(event_id)
-        return next((event for event in self.events if event.event_id == event_id), None)
+        for event in self.events:
+            if event.event_id == event_id:
+                return event
+        return None
 
-    def showMembers(self):
-        if not self.members:
-            print("Es sind keine Mitglieder vorhanden.")
-            return
-        else:
-            print("--- Mitglieder ---")
+    def getEvents(self):
+        return self.events
+
+    def export_members_to_csv(self, filename, officer_only=False):
+        with open(filename, mode='w', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            # Schreibe Header-Zeile
+            writer.writerow(
+                ["Vorname", "Nachname", "Geburtsdatum", "Straße", "Hausnummer", "PLZ", "Stadt", "Mitgliedsnummer",
+                 "Funktionär"])
+            # Schreibe Daten der Mitglieder in die CSV-Datei
             for member in self.members:
-                print(member)
+                if officer_only and not member.is_officer:
+                    continue
+                writer.writerow([member.first_name, member.last_name, member.birth_date,
+                                 member.address.street, member.address.house_number, member.address.zip_code,
+                                 member.address.city, member.member_id, "Ja" if member.is_officer else "Nein"])
 
-    def showEvents(self):
-        if not self.events:
-            print("Es sind keine Veranstaltungen vorhanden.")
-        else:
-            print("--- Veranstaltungen ---")
-            for event in self.events:
-                print(event)
+    def import_members_from_csv(self, filename):
+        with open(filename, mode='r') as file:
+            reader = csv.reader(file)
+            next(reader)  # Überspringe Header-Zeile
+            for row in reader:
+                # Extrahiere Daten aus der CSV-Datei
+                first_name, last_name, birth_date, street, house_number, zip_code, city, member_id, is_officer = row
+                is_officer = True if is_officer.lower() == 'ja' else False
+                # Erstelle Address-Objekt
+                address = Address(street, house_number, zip_code, city)
+                # Erstelle Member-Objekt und füge es der Mitgliederliste hinzu
+                member = Member(first_name, last_name, birth_date, address, member_id, is_officer)
+                self.members.append(member)

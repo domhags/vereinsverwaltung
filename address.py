@@ -1,9 +1,9 @@
 class Address:
-    def __init__(self, street_name, house_number, postal_code, city_name):
-        self.street_name = street_name
+    def __init__(self, street, house_number, zip_code, city):
+        self.street = street
         self.house_number = house_number
-        self.postal_code = postal_code
-        self.city_name = city_name
+        self.zip_code = zip_code
+        self.city = city
 
     def __str__(self):
-        return f"{self.street_name} {self.house_number}, {self.postal_code} {self.city_name}"
+        return f"{self.street} {self.house_number}, {self.zip_code} {self.city}"
